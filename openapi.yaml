@@ -1,0 +1,443 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: AquaPure Water Solutions Calgary API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: contact
+    description: Contact and quote operations
+  - name: testimonials
+    description: Customer testimonials
+  - name: products
+    description: Products and services
+  - name: faqs
+    description: Frequently asked questions
+  - name: blog
+    description: Blog posts
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit contact form
+      description: Submit a contact form message and trigger auto email reply
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Contact submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactSubmission"
+        "400":
+          description: Invalid input
+
+  /quotes:
+    post:
+      operationId: requestQuote
+      tags: [contact]
+      summary: Request a free quote
+      description: Submit a quote request for water treatment services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Quote request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteSubmission"
+        "400":
+          description: Invalid input
+    get:
+      operationId: listQuotes
+      tags: [contact]
+      summary: List all quote requests (admin)
+      responses:
+        "200":
+          description: List of quote requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuoteSubmission"
+
+  /testimonials:
+    get:
+      operationId: listTestimonials
+      tags: [testimonials]
+      summary: List customer testimonials
+      responses:
+        "200":
+          description: List of testimonials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Testimonial"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products and services
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a single product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+
+  /faqs:
+    get:
+      operationId: listFaqs
+      tags: [faqs]
+      summary: List frequently asked questions
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Faq"
+
+  /blog-posts:
+    get:
+      operationId: listBlogPosts
+      tags: [blog]
+      summary: List blog posts
+      responses:
+        "200":
+          description: List of blog posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogPost"
+
+  /blog-posts/{id}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      summary: Get a single blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Blog post details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+
+  /stats:
+    get:
+      operationId: getSiteStats
+      tags: [contact]
+      summary: Get site stats for homepage (happy customers, years experience, etc.)
+      responses:
+        "200":
+          description: Site stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ContactInput:
+      type: object
+      required: [name, email, message]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        subject:
+          type: ["string", "null"]
+        message:
+          type: string
+          minLength: 10
+        serviceInterest:
+          type: ["string", "null"]
+
+    ContactSubmission:
+      type: object
+      required: [id, name, email, message, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        subject:
+          type: ["string", "null"]
+        message:
+          type: string
+        serviceInterest:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    QuoteInput:
+      type: object
+      required: [name, email, phone, address, waterSource, issues]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        address:
+          type: string
+        waterSource:
+          type: string
+          description: "well, municipal, or other"
+        issues:
+          type: array
+          items:
+            type: string
+          description: "hard water, iron, sulfur, bacteria, taste, etc."
+        services:
+          type: array
+          items:
+            type: string
+        notes:
+          type: ["string", "null"]
+        preferredTime:
+          type: ["string", "null"]
+
+    QuoteSubmission:
+      type: object
+      required: [id, name, email, phone, address, waterSource, issues, status, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        waterSource:
+          type: string
+        issues:
+          type: array
+          items:
+            type: string
+        services:
+          type: array
+          items:
+            type: string
+        notes:
+          type: ["string", "null"]
+        preferredTime:
+          type: ["string", "null"]
+        status:
+          type: string
+          description: "pending, contacted, quoted, won, lost"
+        createdAt:
+          type: string
+
+    Testimonial:
+      type: object
+      required: [id, name, location, rating, text, service]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        rating:
+          type: integer
+        text:
+          type: string
+        service:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        date:
+          type: string
+
+    Product:
+      type: object
+      required: [id, name, category, shortDescription, description, features, benefits, price]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          description: "well-water, softener, filtration, reverse-osmosis, uv-purification"
+        shortDescription:
+          type: string
+        description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        benefits:
+          type: array
+          items:
+            type: string
+        price:
+          type: string
+          description: "starting price or 'Get a Quote'"
+        imageUrl:
+          type: ["string", "null"]
+        popular:
+          type: boolean
+
+    Faq:
+      type: object
+      required: [id, question, answer, category]
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+        category:
+          type: string
+
+    BlogPost:
+      type: object
+      required: [id, title, slug, excerpt, content, author, publishedAt, category]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+        publishedAt:
+          type: string
+        category:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+
+    SiteStats:
+      type: object
+      required: [happyCustomers, yearsExperience, systemsInstalled, warrantyYears]
+      properties:
+        happyCustomers:
+          type: integer
+        yearsExperience:
+          type: integer
+        systemsInstalled:
+          type: integer
+        warrantyYears:
+          type: integer
+        googleRating:
+          type: number
+        reviewCount:
+          type: integer
