@@ -1,5 +1,5 @@
 {
   "installCommand": "npx pnpm@9.15.0 install",
-  "buildCommand": "pnpm --filter @workspace/water-treatment run build",
+  "buildCommand": "bash build.sh",
   "outputDirectory": "artifacts/water-treatment/dist"
 }
